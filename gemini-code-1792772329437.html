@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film ve Fotoğrafçılık Kulübü | F&F</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Playfair+Display:ital,wght@0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: 'var(--accent-color, #e50914)',
+                            redHover: 'var(--accent-hover, #b80710)',
+                            dark: '#0a0a0a',
+                            card: '#121212',
+                            border: '#262626'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['var(--body-font, Inter)', 'sans-serif'],
+                        heading: ['var(--heading-font, Montserrat)', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --accent-color: #e50914;
+            --accent-hover: #b80710;
+            --body-font: 'Inter';
+            --heading-font: 'Montserrat';
+            --card-radius: 1rem;
+        }
+        
+        body { font-family: var(--body-font), sans-serif; }
+        h1, h2, h3, h4, .font-heading { font-family: var(--heading-font), sans-serif; }
+        .custom-card { border-radius: var(--card-radius); }
+
+        .glass-nav {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        [contenteditable="true"] {
+            outline: 2px dashed var(--accent-color, #e50914) !important;
+            outline-offset: 4px;
+            border-radius: 4px;
+            background: rgba(229, 9, 20, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-gray-100 antialiased selection:bg-brand-red selection:text-white pb-12">
+
+    <!-- ADMIN EDIT BAR (Gizli Açılır) -->
+    <div id="adminBar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/95 backdrop-blur-md border border-brand-red/50 text-white px-6 py-3 rounded-full shadow-2xl items-center gap-4 border-glow">
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-brand-red animate-pulse"></span>
+            <span class="text-xs font-semibold tracking-wider uppercase text-gray-300">Yönetici Modu</span>
+        </div>
+        <div class="h-4 w-px bg-neutral-700"></div>
+        <button id="toggleEditBtn" onclick="toggleEditMode()" class="px-4 py-1.5 bg-brand-red hover:bg-brand-redHover text-white text-xs font-bold rounded-full transition-all flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square"></i> Düzenlemeyi Başlat
+        </button>
+        <button id="saveBtn" onclick="saveSiteData()" class="hidden px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-full transition-all flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet
+        </button>
+        <button onclick="logoutAdmin()" class="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-gray-300 text-xs rounded-full">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+    </div>
+
+    <!-- YÖNETİCİ GİZLİ STİL VE TASARIM PANELİ -->
+    <div id="styleControlPanel" class="hidden fixed right-6 top-24 z-50 w-80 bg-neutral-900/95 border border-neutral-800 rounded-2xl p-5 shadow-2xl backdrop-blur-md">
+        <div class="flex items-center justify-between mb-4 border-b border-neutral-800 pb-3">
+            <h4 class="font-bold text-sm text-white flex items-center gap-2"><i class="fa-solid fa-palette text-brand-red"></i> Tasarım Ayarları</h4>
+            <button onclick="document.getElementById('styleControlPanel').classList.add('hidden')" class="text-gray-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-4 text-xs">
+            <div>
+                <label class="block text-gray-400 mb-1">Vurgu Rengi</label>
+                <div class="flex gap-2">
+                    <button onclick="setAccentColor('#e50914', '#b80710')" class="w-7 h-7 rounded-full bg-[#e50914] border border-white/20"></button>
+                    <button onclick="setAccentColor('#f97316', '#ea580c')" class="w-7 h-7 rounded-full bg-[#f97316] border border-white/20"></button>
+                    <button onclick="setAccentColor('#eab308', '#ca8a04')" class="w-7 h-7 rounded-full bg-[#eab308] border border-white/20"></button>
+                    <button onclick="setAccentColor('#3b82f6', '#1d4ed8')" class="w-7 h-7 rounded-full bg-[#3b82f6] border border-white/20"></button>
+                    <button onclick="setAccentColor('#10b981', '#047857')" class="w-7 h-7 rounded-full bg-[#10b981] border border-white/20"></button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-400 mb-1">Başlık Fontu</label>
+                <select id="headingFontSelect" onchange="changeFont('heading', this.value)" class="w-full bg-neutral-800 border border-neutral-700 rounded p-2 text-white">
+                    <option value="Montserrat">Montserrat (Modern & Sert)</option>
+                    <option value="Playfair Display">Playfair Display (Klasik & Sinematik)</option>
+                    <option value="Inter">Inter (Sade & Minimal)</option>
+                    <option value="JetBrains Mono">JetBrains Mono (Teknik)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-400 mb-1">Kart Köşe Yuvarlama</label>
+                <select onchange="changeRadius(this.value)" class="w-full bg-neutral-800 border border-neutral-700 rounded p-2 text-white">
+                    <option value="0px">Keskin (0px)</option>
+                    <option value="0.75rem">Kavisli (12px)</option>
+                    <option value="1.5rem">Yuvarlak (24px)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-nav border-b border-brand-border/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- LOGO -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="relative w-12 h-12 flex items-center justify-center bg-black rounded-lg border border-neutral-800 p-1 group-hover:border-brand-red transition-colors overflow-hidden">
+                        <img id="siteLogoImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'><rect width='500' height='500' fill='black'/><path d='M 60 180 H 120 V 320 H 60 Z' fill='white'/><path d='M 120 180 H 220 V 320 H 120 Z' fill='white'/><circle cx='178' cy='222' r='10' fill='%23e50914'/><text x='300' y='250' font-family='sans-serif' font-weight='900' font-size='36' fill='white'>F&amp;F</text></svg>" class="w-full h-full object-contain" alt="Logo">
+                    </div>
+                    <div>
+                        <span id="editable-brand-name" data-editable="true" class="font-heading font-black text-xl tracking-wider text-white block leading-none">F&F</span>
+                        <span id="editable-brand-sub" data-editable="true" class="text-[10px] text-gray-400 tracking-widest uppercase font-semibold">Film & Fotoğrafçılık</span>
+                    </div>
+                </a>
+
+                <!-- LOGO DEĞİŞTİRME BUTONU (Sadece Admin) -->
+                <label id="logoUploadBtn" class="hidden cursor-pointer px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-xs text-white rounded border border-neutral-700">
+                    <i class="fa-solid fa-upload mr-1"></i> Logoyu Cihazdan Değiştir
+                    <input type="file" accept="image/*" class="hidden" onchange="uploadLogo(event)">
+                </label>
+
+                <!-- NAV LINKS -->
+                <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                    <a href="#hero" class="text-gray-300 hover:text-brand-red transition-colors">Ana Sayfa</a>
+                    <a href="#about" class="text-gray-300 hover:text-brand-red transition-colors">Hakkımızda</a>
+                    <a href="#announcements" class="text-gray-300 hover:text-brand-red transition-colors">Duyurular</a>
+                    <a href="#events" class="text-gray-300 hover:text-brand-red transition-colors">Etkinlikler</a>
+                    <a href="#gallery" class="text-gray-300 hover:text-brand-red transition-colors">Galeri</a>
+                    <a href="#contact" class="text-gray-300 hover:text-brand-red transition-colors">İletişim</a>
+                </nav>
+
+                <!-- DINAMIK SOSYAL MEDYA BUTONLARI -->
+                <div class="flex items-center gap-2">
+                    <div id="socialButtonsContainer" class="flex items-center gap-2">
+                        <!-- JS ile Dinamik Yüklenir -->
+                    </div>
+                    <button id="addSocialBtn" onclick="openSocialModal()" class="hidden w-8 h-8 rounded-full bg-brand-red/20 text-brand-red border border-brand-red/40 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img id="heroBgImg" src="https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2069&auto=format&fit=crop" class="w-full h-full object-cover opacity-30 filter brightness-50" alt="Hero Background">
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/60 to-transparent"></div>
+        </div>
+
+        <label id="heroBgUploadBtn" class="hidden absolute top-28 right-8 z-20 cursor-pointer px-4 py-2 bg-neutral-900/90 text-xs text-white rounded-lg border border-neutral-700">
+            <i class="fa-solid fa-image mr-1"></i> Arka Planı Değiştir
+            <input type="file" accept="image/*" class="hidden" onchange="uploadHeroBg(event)">
+        </label>
+
+        <div class="relative z-10 max-w-5xl mx-auto px-4 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-red/10 border border-brand-red/30 text-brand-red text-xs font-semibold uppercase tracking-widest mb-6">
+                <i class="fa-solid fa-clapperboard"></i> <span id="editable-hero-badge" data-editable="true">Gümüşhane Üniversitesi Kulübü</span>
+            </div>
+            <h1 id="editable-hero-title" data-editable="true" class="font-heading text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight mb-6 uppercase leading-tight">
+                Karelerin Ötesinde <br><span class="text-brand-red">Hikayeler Yaratıyoruz</span>
+            </h1>
+            <p id="editable-hero-desc" data-editable="true" class="text-gray-300 text-lg sm:text-xl max-w-3xl mx-auto font-light leading-relaxed mb-10">
+                Film ve Fotoğrafçılık Kulübü olarak vizörün arkasındaki tutkulu zihinleri bir araya getiriyoruz.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <a href="#events" class="px-8 py-4 bg-brand-red hover:bg-brand-redHover text-white font-bold rounded-xl transition-all shadow-lg flex items-center gap-3">
+                    <i class="fa-solid fa-calendar-check"></i> Etkinlikler
+                </a>
+                <a href="#contact" class="px-8 py-4 bg-neutral-900 hover:bg-neutral-800 text-white font-bold rounded-xl border border-neutral-700 transition-all flex items-center gap-3">
+                    <i class="fa-solid fa-user-plus"></i> Bize Katıl
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- HAKKIMIZDA SECTION -->
+    <section id="about" class="py-24 bg-neutral-950/50 border-y border-brand-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-brand-red font-bold text-sm tracking-widest uppercase mb-2">Hakkımızda</h2>
+                    <h3 id="editable-about-title" data-editable="true" class="font-heading text-3xl sm:text-4xl font-extrabold text-white mb-6">
+                        Işığı ve Kadrajı Şekillendiren Topluluk
+                    </h3>
+                    <p id="editable-about-desc" data-editable="true" class="text-gray-400 leading-relaxed mb-6">
+                        Kulübümüz sinema ve fotoğraf tutkunlarını ortak bir üretim çatısı altında buluşturmayı hedefler.
+                    </p>
+                </div>
+                <div class="relative">
+                    <div class="aspect-video custom-card overflow-hidden border border-neutral-800 shadow-2xl relative">
+                        <img id="aboutImg" src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover" alt="Hakkımızda">
+                        <label id="aboutImgUploadBtn" class="hidden absolute bottom-4 right-4 z-20 cursor-pointer px-3 py-1.5 bg-black/80 text-xs text-white rounded border border-neutral-700">
+                            <i class="fa-solid fa-camera mr-1"></i> Görseli Değiştir
+                            <input type="file" accept="image/*" class="hidden" onchange="uploadAboutImg(event)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DUYURULAR SECTION -->
+    <section id="announcements" class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+                <div>
+                    <h2 class="text-brand-red font-bold text-sm tracking-widest uppercase mb-2">Güncel</h2>
+                    <h3 class="font-heading text-3xl sm:text-4xl font-extrabold text-white">Duyurular</h3>
+                </div>
+                <button id="addAnnouncementBtn" onclick="openAnnouncementModal()" class="hidden mt-4 md:mt-0 px-4 py-2 bg-brand-red text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Cihazdan Görselli Duyuru Ekle
+                </button>
+            </div>
+
+            <div id="announcementsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Duyurular JS ile Dinamik Yüklenir -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ETKİNLİKLER SECTION -->
+    <section id="events" class="py-24 bg-neutral-950/50 border-t border-brand-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+                <div>
+                    <h2 class="text-brand-red font-bold text-sm tracking-widest uppercase mb-2">Takvim</h2>
+                    <h3 class="font-heading text-3xl sm:text-4xl font-extrabold text-white">Kulüp Etkinlikleri</h3>
+                </div>
+                <button id="addEventBtn" onclick="openEventModal()" class="hidden mt-4 md:mt-0 px-4 py-2 bg-brand-red text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus"></i> Yeni Etkinlik Ekle
+                </button>
+            </div>
+
+            <div id="eventsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Etkinlikler Görselli Kart Olarak JS ile Yüklenir -->
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERİ SECTION -->
+    <section id="gallery" class="py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between mb-12">
+                <div>
+                    <h2 class="text-brand-red font-bold text-sm tracking-widest uppercase mb-2">Galeri</h2>
+                    <h3 class="font-heading text-3xl sm:text-4xl font-extrabold text-white">Çekimlerimiz</h3>
+                </div>
+                <label id="addGalleryBtn" class="hidden cursor-pointer px-4 py-2 bg-brand-red text-white text-xs font-bold rounded-lg flex items-center gap-2">
+                    <i class="fa-solid fa-upload"></i> Cihazdan Fotoğraf Ekle
+                    <input type="file" accept="image/*" class="hidden" onchange="uploadGalleryImage(event)">
+                </label>
+            </div>
+
+            <div id="galleryGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Galeri Görselleri JS ile Yüklenir -->
+            </div>
+        </div>
+    </section>
+
+    <!-- İLETİŞİM SECTION -->
+    <section id="contact" class="py-24 bg-neutral-950/50 border-t border-brand-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-xl mx-auto text-center">
+                <h2 class="text-brand-red font-bold text-sm tracking-widest uppercase mb-2">İletişim</h2>
+                <h3 class="font-heading text-3xl font-extrabold text-white mb-8">Bize Ulaşın</h3>
+                <form onsubmit="event.preventDefault(); alert('Mesajınız alındı!');" class="space-y-4 text-left">
+                    <input type="text" placeholder="Adınız" required class="w-full px-4 py-3 rounded-xl bg-brand-card border border-brand-border text-white focus:outline-none focus:border-brand-red">
+                    <input type="email" placeholder="E-posta" required class="w-full px-4 py-3 rounded-xl bg-brand-card border border-brand-border text-white focus:outline-none focus:border-brand-red">
+                    <textarea rows="4" placeholder="Mesajınız..." required class="w-full px-4 py-3 rounded-xl bg-brand-card border border-brand-border text-white focus:outline-none focus:border-brand-red"></textarea>
+                    <button type="submit" class="w-full py-4 bg-brand-red text-white font-bold rounded-xl shadow-lg">Gönder</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER (GİZLİ ADMİN KİLİDİ BURADA) -->
+    <footer class="border-t border-brand-border py-12 bg-black">
+        <div class="max-w-7xl mx-auto px-4 text-center flex flex-col items-center justify-center gap-2">
+            <p class="text-sm text-gray-500">
+                © 2026 Film ve Fotoğrafçılık Kulübü (F&F). Tüm hakları saklıdır.
+                <button onclick="openAdminPasswordModal()" class="ml-2 text-gray-700 hover:text-brand-red transition-colors" title="Admin Girişi">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                </button>
+            </p>
+        </div>
+    </footer>
+
+    <!-- ETKİNLİK DETAY MODALI (TAM BOYUTLU RESİM GÖSTERİMİ) -->
+    <div id="eventDetailModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl relative my-8">
+            <button onclick="closeEventDetailModal()" class="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/70 text-white hover:bg-brand-red transition-colors flex items-center justify-center text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="max-h-[60vh] bg-black flex items-center justify-center overflow-hidden">
+                <img id="detailEventImg" src="" class="w-full h-full object-contain max-h-[60vh]" alt="Etkinlik Kapak Resmi">
+            </div>
+            <div class="p-6 sm:p-8 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+                    <div>
+                        <span id="detailEventDate" class="text-xs text-brand-red font-bold uppercase tracking-wider block mb-1"></span>
+                        <h3 id="detailEventTitle" class="font-heading text-2xl sm:text-3xl font-extrabold text-white"></h3>
+                    </div>
+                    <a href="#contact" onclick="closeEventDetailModal()" class="px-6 py-2.5 bg-brand-red text-white text-xs font-bold rounded-xl shadow-lg hover:bg-brand-redHover transition-colors">
+                        Etkinliğe Kaydol
+                    </a>
+                </div>
+                <p id="detailEventLocation" class="text-sm text-gray-300 flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-brand-red"></i> <span></span>
+                </p>
+                <p id="detailEventDesc" class="text-gray-400 text-sm leading-relaxed pt-2"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHİFRELİ ADMİN GİRİŞ MODALI -->
+    <div id="adminPasswordModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-sm w-full p-6 text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-brand-red/10 border border-brand-red/30 flex items-center justify-center mx-auto text-brand-red text-xl">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Yönetici Girişi</h3>
+            <input type="password" id="adminPasswordInput" placeholder="Yönetici Şifresi" class="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-white text-center tracking-widest focus:outline-none focus:border-brand-red">
+            <div class="flex gap-2">
+                <button onclick="closeAdminPasswordModal()" class="w-1/2 py-2 bg-neutral-800 text-gray-300 rounded-lg text-xs font-bold">İptal</button>
+                <button onclick="verifyAdminPassword()" class="w-1/2 py-2 bg-brand-red text-white rounded-lg text-xs font-bold">Giriş Yap</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CİHAZDAN DUYURU EKLEME MODALI -->
+    <div id="announcementModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-lg w-full p-6 space-y-4">
+            <h3 class="text-xl font-bold text-white">Yeni Duyuru (Cihazdan Görselli)</h3>
+            <input type="text" id="annTitle" placeholder="Duyuru Başlığı" class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white">
+            <input type="text" id="annDate" placeholder="Tarih (Örn: 24 Ekim 2026)" class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Cihazdan Görsel Seç</label>
+                <input type="file" id="annFile" accept="image/*" class="w-full text-xs text-gray-400 bg-neutral-900 p-2 rounded border border-neutral-800">
+            </div>
+            <textarea id="annDesc" placeholder="Duyuru Metni" rows="3" class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white"></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeAnnouncementModal()" class="px-4 py-2 bg-neutral-800 text-gray-300 rounded-lg text-xs">İptal</button>
+                <button onclick="saveNewAnnouncement()" class="px-4 py-2 bg-brand-red text-white font-bold rounded-lg text-xs">Yayınla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ETKİNLİK EKLEME MODALI -->
+    <div id="eventModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-lg w-full p-6 space-y-4">
+            <h3 class="text-xl font-bold text-white">Yeni Etkinlik Ekle</h3>
+            <input type="text" id="eventTitle" placeholder="Etkinlik Adı" class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="eventDay" placeholder="Gün (Örn: 28)" class="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white">
+                <input type="text" id="eventMonth" placeholder="Ay (Örn: Ekim)" class="px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white">
+            </div>
+            <input type="text" id="eventLocation" placeholder="Konum ve Saat (Örn: Kampüs Amfi | 19:30)" class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Cihazdan Görsel Seç (Kapak Resmi)</label>
+                <input type="file" id="eventFile" accept="image/*" class="w-full text-xs text-gray-400 bg-neutral-900 p-2 rounded border border-neutral-800">
+            </div>
+            <textarea id="eventDesc" placeholder="Etkinlik Detayları" rows="2" class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-white"></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeEventModal()" class="px-4 py-2 bg-neutral-800 text-gray-300 rounded-lg text-xs">İptal</button>
+                <button onclick="saveNewEvent()" class="px-4 py-2 bg-brand-red text-white font-bold rounded-lg text-xs">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOSYAL MEDYA EKLEME MODALI -->
+    <div id="socialModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-border rounded-2xl max-w-sm w-full p-6 space-y-4">
+            <h3 class="text-lg font-bold text-white">Sosyal Medya Butonu Ekle</h3>
+            <select id="socialIconSelect" class="w-full p-2 bg-neutral-900 border border-neutral-800 rounded text-white text-xs">
+                <option value="fa-instagram">Instagram</option>
+                <option value="fa-youtube">YouTube</option>
+                <option value="fa-x-twitter">X / Twitter</option>
+                <option value="fa-tiktok">TikTok</option>
+                <option value="fa-discord">Discord</option>
+                <option value="fa-spotify">Spotify</option>
+            </select>
+            <input type="url" id="socialLinkInput" placeholder="https://..." class="w-full px-4 py-2 bg-neutral-900 border border-neutral-800 rounded text-white text-xs">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeSocialModal()" class="px-3 py-1.5 bg-neutral-800 text-xs text-gray-300 rounded">İptal</button>
+                <button onclick="saveSocialButton()" class="px-3 py-1.5 bg-brand-red text-xs text-white font-bold rounded">Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        let isAdminLoggedIn = false;
+        let isEditMode = false;
+
+        // Varsayılan Veriler
+        let announcements = [
+            { id: 1, title: 'Güz Dönemi Kısa Film Yarışması', date: '25 Ekim 2026', desc: 'Sessizlik temalı kısa film yarışmamız başladı.', img: 'https://images.unsplash.com/photo-1512790182412-b19e6d61b39a?q=80&w=1000&auto=format&fit=crop' }
+        ];
+
+        let eventsList = [
+            { id: 1, title: 'Açık Hava Sinema Gecesi: Klasikler', day: '28', month: 'Ekim', location: 'Kampüs Amfi Tiyatro | 19:30', desc: 'Açık havada nostaljik sinema keyfi için toplanıyoruz.', img: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1000&auto=format&fit=crop' }
+        ];
+
+        let galleryImages = [
+            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=800&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=800&auto=format&fit=crop'
+        ];
+
+        let socialLinks = [
+            { icon: 'fa-instagram', url: 'https://instagram.com' },
+            { icon: 'fa-youtube', url: 'https://youtube.com' }
+        ];
+
+        // ETKİNLİK DETAYİ ACMA MODALI
+        function openEventDetail(id) {
+            const event = eventsList.find(e => e.id === id);
+            if (!event) return;
+            document.getElementById('detailEventImg').src = event.img || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1000&auto=format&fit=crop';
+            document.getElementById('detailEventTitle').innerText = event.title;
+            document.getElementById('detailEventDate').innerText = `${event.day} ${event.month}`;
+            document.getElementById('detailEventLocation').querySelector('span').innerText = event.location;
+            document.getElementById('detailEventDesc').innerText = event.desc || 'Bu etkinlik için ekstra detay girilmedi.';
+
+            document.getElementById('eventDetailModal').classList.remove('hidden');
+            document.getElementById('eventDetailModal').classList.add('flex');
+        }
+
+        function closeEventDetailModal() {
+            document.getElementById('eventDetailModal').classList.add('hidden');
+            document.getElementById('eventDetailModal').classList.remove('flex');
+        }
+
+        // ŞİFRELİ ADMİN KONTROLÜ (asustuf0101)
+        function openAdminPasswordModal() {
+            document.getElementById('adminPasswordModal').classList.remove('hidden');
+            document.getElementById('adminPasswordModal').classList.add('flex');
+        }
+        function closeAdminPasswordModal() {
+            document.getElementById('adminPasswordModal').classList.add('hidden');
+            document.getElementById('adminPasswordModal').classList.remove('flex');
+        }
+
+        function verifyAdminPassword() {
+            const pwd = document.getElementById('adminPasswordInput').value;
+            if (pwd === 'asustuf0101') {
+                isAdminLoggedIn = true;
+                closeAdminPasswordModal();
+                document.getElementById('adminBar').classList.remove('hidden');
+                document.getElementById('adminBar').classList.add('flex');
+                document.getElementById('styleControlPanel').classList.remove('hidden');
+                alert('Yönetici girişi başarılı!');
+            } else {
+                alert('Hatalı şifre!');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            if (isEditMode) toggleEditMode();
+            document.getElementById('adminBar').classList.add('hidden');
+            document.getElementById('styleControlPanel').classList.add('hidden');
+        }
+
+        // KLAVYE KISAYOLU (Ctrl + Shift + A)
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                openAdminPasswordModal();
+            }
+        });
+
+        // DÜZENLEME MODU TOGGLE
+        function toggleEditMode() {
+            if (!isAdminLoggedIn) return;
+            isEditMode = !isEditMode;
+            
+            document.querySelectorAll('[data-editable="true"]').forEach(el => {
+                el.contentEditable = isEditMode ? "true" : "false";
+            });
+
+            const actionBtns = ['saveBtn', 'logoUploadBtn', 'heroBgUploadBtn', 'aboutImgUploadBtn', 'addAnnouncementBtn', 'addEventBtn', 'addGalleryBtn', 'addSocialBtn'];
+            actionBtns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    if (isEditMode) btn.classList.remove('hidden');
+                    else btn.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('toggleEditBtn').innerHTML = isEditMode ? '<i class="fa-solid fa-xmark"></i> Kapat' : '<i class="fa-solid fa-pen-to-square"></i> Düzenlemeyi Başlat';
+            renderAll();
+        }
+
+        // CİHAZDAN LOGO YÜKLEME (Base64)
+        function uploadLogo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('siteLogoImg').src = e.target.result;
+                    localStorage.setItem('ff_custom_logo', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // CİHAZDAN HERO ARKA PLAN YÜKLEME
+        function uploadHeroBg(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('heroBgImg').src = e.target.result;
+                    localStorage.setItem('ff_custom_herobg', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // CİHAZDAN HAKKIMIZDA GÖRSELİ YÜKLEME
+        function uploadAboutImg(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('aboutImg').src = e.target.result;
+                    localStorage.setItem('ff_custom_aboutimg', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // DUYURU MODALI
+        function openAnnouncementModal() {
+            document.getElementById('announcementModal').classList.remove('hidden');
+            document.getElementById('announcementModal').classList.add('flex');
+        }
+        function closeAnnouncementModal() {
+            document.getElementById('announcementModal').classList.add('hidden');
+            document.getElementById('announcementModal').classList.remove('flex');
+        }
+
+        function saveNewAnnouncement() {
+            const title = document.getElementById('annTitle').value;
+            const date = document.getElementById('annDate').value;
+            const desc = document.getElementById('annDesc').value;
+            const fileInput = document.getElementById('annFile');
+
+            if (!title || !desc) { alert('Başlık ve metin zorunludur.'); return; }
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    announcements.unshift({ id: Date.now(), title, date, desc, img: e.target.result });
+                    saveAndRenderAnnouncements();
+                    closeAnnouncementModal();
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                announcements.unshift({ id: Date.now(), title, date, desc, img: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1000&auto=format&fit=crop' });
+                saveAndRenderAnnouncements();
+                closeAnnouncementModal();
+            }
+        }
+
+        function deleteAnnouncement(id) {
+            announcements = announcements.filter(a => a.id !== id);
+            saveAndRenderAnnouncements();
+        }
+
+        function saveAndRenderAnnouncements() {
+            localStorage.setItem('ff_announcements', JSON.stringify(announcements));
+            renderAnnouncements();
+        }
+
+        function renderAnnouncements() {
+            const grid = document.getElementById('announcementsGrid');
+            grid.innerHTML = announcements.map(item => `
+                <div class="bg-brand-card border border-brand-border custom-card overflow-hidden flex flex-col relative group">
+                    ${isEditMode ? `<button onclick="deleteAnnouncement(${item.id})" class="absolute top-2 right-2 z-20 w-7 h-7 bg-red-600 text-white rounded-full text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <div class="h-48 overflow-hidden">
+                        <img src="${item.img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Duyuru">
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs text-brand-red font-semibold mb-2 block"><i class="fa-regular fa-calendar mr-1"></i> ${item.date || 'Güncel'}</span>
+                            <h4 class="font-heading font-bold text-xl text-white mb-3">${item.title}</h4>
+                            <p class="text-gray-400 text-sm leading-relaxed">${item.desc}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ETKİNLİK MODALI VE LOGIC
+        function openEventModal() {
+            document.getElementById('eventModal').classList.remove('hidden');
+            document.getElementById('eventModal').classList.add('flex');
+        }
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.add('hidden');
+            document.getElementById('eventModal').classList.remove('flex');
+        }
+
+        function saveNewEvent() {
+            const title = document.getElementById('eventTitle').value;
+            const day = document.getElementById('eventDay').value || '15';
+            const month = document.getElementById('eventMonth').value || 'Kasım';
+            const location = document.getElementById('eventLocation').value || 'Gümüşhane Üniv. Kampüsü';
+            const desc = document.getElementById('eventDesc').value || '';
+            const fileInput = document.getElementById('eventFile');
+
+            if (!title) { alert('Etkinlik adı zorunludur.'); return; }
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    eventsList.unshift({ id: Date.now(), title, day, month, location, desc, img: e.target.result });
+                    saveAndRenderEvents();
+                    closeEventModal();
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                eventsList.unshift({ id: Date.now(), title, day, month, location, desc, img: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1000&auto=format&fit=crop' });
+                saveAndRenderEvents();
+                closeEventModal();
+            }
+        }
+
+        function deleteEvent(id) {
+            eventsList = eventsList.filter(e => e.id !== id);
+            saveAndRenderEvents();
+        }
+
+        function saveAndRenderEvents() {
+            localStorage.setItem('ff_events', JSON.stringify(eventsList));
+            renderEvents();
+        }
+
+        function renderEvents() {
+            const grid = document.getElementById('eventsGrid');
+            grid.innerHTML = eventsList.map(item => `
+                <div onclick="openEventDetail(${item.id})" class="bg-brand-card border border-brand-border custom-card overflow-hidden flex flex-col relative group hover:border-brand-red/50 transition-all cursor-pointer">
+                    ${isEditMode ? `<button onclick="event.stopPropagation(); deleteEvent(${item.id})" class="absolute top-2 right-2 z-20 w-7 h-7 bg-red-600 text-white rounded-full text-xs shadow-lg"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    
+                    <!-- KART RESMİ -->
+                    <div class="h-52 overflow-hidden relative">
+                        <img src="${item.img || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1000&auto=format&fit=crop'}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${item.title}">
+                        
+                        <!-- TARİH ROZETİ -->
+                        <div class="absolute top-3 left-3 bg-black/80 backdrop-blur-md border border-brand-red/40 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                            <span class="font-heading font-black text-brand-red text-base leading-none">${item.day}</span>
+                            <span class="text-[10px] uppercase font-bold text-gray-300 tracking-wider">${item.month}</span>
+                        </div>
+                    </div>
+
+                    <!-- KART İÇERİĞİ -->
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-heading font-bold text-xl text-white mb-2 group-hover:text-brand-red transition-colors">${item.title}</h4>
+                            <p class="text-xs text-brand-red font-semibold mb-3 flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot"></i> ${item.location}
+                            </p>
+                            ${item.desc ? `<p class="text-gray-400 text-sm leading-relaxed line-clamp-2 mb-4">${item.desc}</p>` : ''}
+                        </div>
+                        <button class="mt-4 w-full py-2.5 bg-neutral-900 group-hover:bg-brand-red group-hover:border-brand-red text-white text-xs font-bold rounded-lg border border-neutral-700 transition-all text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-expand text-[10px]"></i> Detayları & Görseli İncele
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // GALERİ
+        function uploadGalleryImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    galleryImages.unshift(e.target.result);
+                    localStorage.setItem('ff_gallery', JSON.stringify(galleryImages));
+                    renderGallery();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function deleteGalleryImg(index) {
+            galleryImages.splice(index, 1);
+            localStorage.setItem('ff_gallery', JSON.stringify(galleryImages));
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = galleryImages.map((img, idx) => `
+                <div class="aspect-square custom-card overflow-hidden relative group">
+                    ${isEditMode ? `<button onclick="deleteGalleryImg(${idx})" class="absolute top-2 right-2 z-20 w-6 h-6 bg-red-600 text-white rounded-full text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <img src="${img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Galeri">
+                </div>
+            `).join('');
+        }
+
+        // SOSYAL MEDYA
+        function openSocialModal() {
+            document.getElementById('socialModal').classList.remove('hidden');
+            document.getElementById('socialModal').classList.add('flex');
+        }
+        function closeSocialModal() {
+            document.getElementById('socialModal').classList.add('hidden');
+            document.getElementById('socialModal').classList.remove('flex');
+        }
+
+        function saveSocialButton() {
+            const icon = document.getElementById('socialIconSelect').value;
+            const url = document.getElementById('socialLinkInput').value;
+            if (url) {
+                socialLinks.push({ icon, url });
+                localStorage.setItem('ff_socials', JSON.stringify(socialLinks));
+                renderSocials();
+                closeSocialModal();
+            }
+        }
+
+        function deleteSocial(idx) {
+            socialLinks.splice(idx, 1);
+            localStorage.setItem('ff_socials', JSON.stringify(socialLinks));
+            renderSocials();
+        }
+
+        function renderSocials() {
+            const container = document.getElementById('socialButtonsContainer');
+            container.innerHTML = socialLinks.map((item, idx) => `
+                <div class="relative group">
+                    <a href="${item.url}" target="_blank" class="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-gray-400 hover:text-white hover:border-brand-red transition-all">
+                        <i class="fa-brands ${item.icon} text-sm"></i>
+                    </a>
+                    ${isEditMode ? `<button onclick="deleteSocial(${idx})" class="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white rounded-full text-[9px] flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // STİLLER
+        function setAccentColor(color, hover) {
+            document.documentElement.style.setProperty('--accent-color', color);
+            document.documentElement.style.setProperty('--accent-hover', hover);
+            localStorage.setItem('ff_accent_color', color);
+            localStorage.setItem('ff_accent_hover', hover);
+        }
+
+        function changeFont(type, font) {
+            if (type === 'heading') {
+                document.documentElement.style.setProperty('--heading-font', font);
+                localStorage.setItem('ff_heading_font', font);
+            }
+        }
+
+        function changeRadius(radius) {
+            document.documentElement.style.setProperty('--card-radius', radius);
+            localStorage.setItem('ff_card_radius', radius);
+        }
+
+        // GENEL YÜKLEME VE KAYDETME
+        function saveSiteData() {
+            const editables = document.querySelectorAll('[data-editable="true"]');
+            const data = {};
+            editables.forEach((el, index) => {
+                const id = el.id || `editable_${index}`;
+                data[id] = el.innerHTML;
+            });
+            localStorage.setItem('ff_text_data', JSON.stringify(data));
+            alert('Tüm site metinleri, duyurular ve etkinlikler başarıyla kaydedildi!');
+            toggleEditMode();
+        }
+
+        function loadAllData() {
+            const savedText = localStorage.getItem('ff_text_data');
+            if (savedText) {
+                const data = JSON.parse(savedText);
+                Object.keys(data).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.innerHTML = data[id];
+                });
+            }
+
+            if (localStorage.getItem('ff_custom_logo')) document.getElementById('siteLogoImg').src = localStorage.getItem('ff_custom_logo');
+            if (localStorage.getItem('ff_custom_herobg')) document.getElementById('heroBgImg').src = localStorage.getItem('ff_custom_herobg');
+            if (localStorage.getItem('ff_custom_aboutimg')) document.getElementById('aboutImg').src = localStorage.getItem('ff_custom_aboutimg');
+
+            if (localStorage.getItem('ff_announcements')) announcements = JSON.parse(localStorage.getItem('ff_announcements'));
+            if (localStorage.getItem('ff_events')) eventsList = JSON.parse(localStorage.getItem('ff_events'));
+            if (localStorage.getItem('ff_gallery')) galleryImages = JSON.parse(localStorage.getItem('ff_gallery'));
+            if (localStorage.getItem('ff_socials')) socialLinks = JSON.parse(localStorage.getItem('ff_socials'));
+
+            if (localStorage.getItem('ff_accent_color')) setAccentColor(localStorage.getItem('ff_accent_color'), localStorage.getItem('ff_accent_hover'));
+            if (localStorage.getItem('ff_heading_font')) changeFont('heading', localStorage.getItem('ff_heading_font'));
+            if (localStorage.getItem('ff_card_radius')) changeRadius(localStorage.getItem('ff_card_radius'));
+
+            renderAll();
+        }
+
+        function renderAll() {
+            renderAnnouncements();
+            renderEvents();
+            renderGallery();
+            renderSocials();
+        }
+
+        window.onload = loadAllData;
+    </script>
+</body>
+</html>
